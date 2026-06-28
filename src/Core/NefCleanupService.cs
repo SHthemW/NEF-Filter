@@ -96,18 +96,18 @@ internal sealed class NefCleanupService
 
     private static void PrintPreview(CleanupOptions options, NefScanResult scanResult)
     {
-        Console.WriteLine($"NEF 目录: {options.NefDirectory}");
-        Console.WriteLine($"JPG 目录: {options.JpgDirectory}");
-        Console.WriteLine($"递归扫描: {(options.Recursive ? "是" : "否")}");
-        Console.WriteLine($"待删除 NEF 文件数量: {scanResult.DeletedCount}");
-        Console.WriteLine($"待保留 NEF 文件数量: {scanResult.KeptCount}");
+        Console.WriteLine($"NEF directory: {options.NefDirectory}");
+        Console.WriteLine($"JPG directory: {options.JpgDirectory}");
+        Console.WriteLine($"Recursive scan: {(options.Recursive ? "Yes" : "No")}");
+        Console.WriteLine($"NEF files to delete: {scanResult.DeletedCount}");
+        Console.WriteLine($"NEF files to keep: {scanResult.KeptCount}");
 
         if (scanResult.DeletedCount == 0)
         {
             return;
         }
 
-        Console.WriteLine("待删除文件明细:");
+        Console.WriteLine("Files to delete:");
         foreach (var filePath in scanResult.FilesToDelete.OrderBy(path => path, StringComparer.OrdinalIgnoreCase))
         {
             var relativePath = Path.GetRelativePath(options.NefDirectory, filePath);
@@ -122,13 +122,13 @@ internal sealed class NefCleanupService
             return;
         }
 
-        Console.Write("确认删除以上 NEF 文件吗? [y/N]: ");
+        Console.Write("Delete the NEF files above? [y/N]: ");
         var input = Console.ReadLine();
 
         if (!string.Equals(input, "y", StringComparison.OrdinalIgnoreCase) &&
             !string.Equals(input, "yes", StringComparison.OrdinalIgnoreCase))
         {
-            throw new OperationCanceledException("用户取消删除");
+            throw new OperationCanceledException("User canceled deletion.");
         }
     }
 
@@ -144,7 +144,7 @@ internal sealed class NefCleanupService
     {
         if (!Directory.Exists(directoryPath))
         {
-            throw new DirectoryNotFoundException($"{label} 目录不存在: {directoryPath}");
+            throw new DirectoryNotFoundException($"{label} directory not found: {directoryPath}");
         }
     }
 }

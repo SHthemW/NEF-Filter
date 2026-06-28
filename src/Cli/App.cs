@@ -6,6 +6,13 @@ internal sealed class App
 {
     public async Task<int> RunAsync(string[] args)
     {
+        if (args.Length == 0)
+        {
+            Console.WriteLine(CleanupOptionsParser.UsageText);
+            WaitForUser();
+            return 0;
+        }
+
         var parseResult = CleanupOptionsParser.TryParse(args, out var options, out var errorMessage);
         if (!parseResult)
         {
@@ -27,24 +34,36 @@ internal sealed class App
 
             if (result.DeletedCount == 0)
             {
-                Console.WriteLine($"未发现需要删除的 NEF 文件，共保留 {result.KeptCount} 个喵。");
+                Console.WriteLine($"No NEF files needed removal; kept {result.KeptCount} file(s).");
                 return 0;
             }
 
             Console.WriteLine(
-                $"处理完成，已删除 {result.DeletedCount} 个 NEF 文件，保留 {result.KeptCount} 个 NEF 文件喵。");
+                $"Done. Deleted {result.DeletedCount} NEF file(s) and kept {result.KeptCount} file(s).");
 
             return 0;
         }
         catch (OperationCanceledException)
         {
-            Console.Error.WriteLine("操作已取消喵。");
+            Console.Error.WriteLine("Operation canceled.");
             return 1;
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"执行失败: {ex.Message}喵。");
+            Console.Error.WriteLine($"Execution failed: {ex.Message}");
             return 1;
         }
+    }
+
+    private static void WaitForUser()
+    {
+        if (Console.IsInputRedirected)
+        {
+            return;
+        }
+
+        Console.WriteLine();
+        Console.Write("Press Enter to exit...");
+        Console.ReadLine();
     }
 }

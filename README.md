@@ -74,10 +74,10 @@ neff [--nef-dir <path>] [--jpg-dir <path>] [--quiet] [--recursive]
 
 ### Installation
 
-Run the `install.ps1` script from the repository root or from the published package root.
+Run the `install.bat` script from the repository root or from the published package root.
 
-```powershell
-powershell -ExecutionPolicy Bypass -File .\install.ps1
+```bat
+install.bat
 ```
 
 The script installs the tool into a user-local directory and adds it to `PATH`.

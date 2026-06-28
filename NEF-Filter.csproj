@@ -24,11 +24,11 @@
   <Target Name="CreatePublishArchive" AfterTargets="Publish">
     <PropertyGroup>
       <ArchiveFilePath>$(ArchiveOutputDirectory)\$(ArchiveFileName)</ArchiveFilePath>
-      <PublishInstallScriptPath>$(PublishDir)install.ps1</PublishInstallScriptPath>
+      <PublishInstallScriptPath>$(PublishDir)install.bat</PublishInstallScriptPath>
     </PropertyGroup>
 
     <MakeDir Directories="$(ArchiveOutputDirectory)" />
-    <Copy SourceFiles="$(MSBuildProjectDirectory)\install.ps1" DestinationFiles="$(PublishInstallScriptPath)" />
+    <Copy SourceFiles="$(MSBuildProjectDirectory)\install.bat" DestinationFiles="$(PublishInstallScriptPath)" />
     <Exec Command='powershell -NoProfile -ExecutionPolicy Bypass -Command "&amp; { Compress-Archive -Path &quot;$(PublishDir)*&quot; -DestinationPath &quot;$(ArchiveFilePath)&quot; -Force }"' />
   </Target>
 

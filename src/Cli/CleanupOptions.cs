@@ -10,19 +10,19 @@ internal sealed record CleanupOptions(
 internal static class CleanupOptionsParser
 {
     public const string UsageText = """
-用法:
-  neff [--nef-dir <目录路径>] [--jpg-dir <目录路径>] [--quiet] [--recursive]
+Usage:
+  neff [--nef-dir <path>] [--jpg-dir <path>] [--quiet] [--recursive]
 
-说明:
-  默认扫描当前目录下的 .nef / .jpg / .jpeg 文件。
-  保留与 JPG 相对路径及文件名一致的 NEF，删除没有对应 JPG 的 NEF。
+Description:
+  By default, the tool scans only the current directory for .nef / .jpg / .jpeg files.
+  It keeps NEF files whose relative path and file name match a JPG file, and deletes the rest.
 
-参数:
-  --nef-dir, -n     指定 NEF 目录，默认当前目录
-  --jpg-dir, -j     指定 JPG 目录，默认当前目录
-  --quiet, -q       直接删除，不显示待删除清单，也不进行二次确认
-  --recursive, -r   递归扫描所有子目录
-  --help, -h        显示帮助
+Options:
+  --nef-dir, -n     Path to the NEF directory, defaults to the current directory
+  --jpg-dir, -j     Path to the JPG directory, defaults to the current directory
+  --quiet, -q       Skip preview and confirmation, delete immediately
+  --recursive, -r   Scan subdirectories recursively
+  --help, -h        Show help
 """;
 
     public static bool TryParse(
@@ -73,7 +73,7 @@ internal static class CleanupOptionsParser
 
                     break;
                 default:
-                    errorMessage = $"不支持的参数: {arg}喵。";
+                    errorMessage = $"Unsupported argument: {arg}.";
                     return false;
             }
         }
@@ -101,14 +101,14 @@ internal static class CleanupOptionsParser
         var nextIndex = index + 1;
         if (nextIndex >= args.Count)
         {
-            errorMessage = $"参数 {optionName} 缺少目录值喵。";
+            errorMessage = $"Option {optionName} is missing a directory value.";
             return false;
         }
 
         var nextValue = args[nextIndex];
         if (string.IsNullOrWhiteSpace(nextValue) || nextValue.StartsWith('-'))
         {
-            errorMessage = $"参数 {optionName} 缺少有效目录值喵。";
+            errorMessage = $"Option {optionName} is missing a valid directory value.";
             return false;
         }
 
