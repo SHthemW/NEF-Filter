@@ -6,6 +6,7 @@
     <RootNamespace>NEF_Filter</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <ArchiveOutputDirectory>$(MSBuildProjectDirectory)\bin\Release-Archives</ArchiveOutputDirectory>
     <ArchivePlatform Condition="'$(RuntimeIdentifier)' != ''">$([System.String]::Copy('$(RuntimeIdentifier)').Split('-')[0])</ArchivePlatform>
     <ArchivePlatform Condition="'$(ArchivePlatform)' == '' and '$(OS)' == 'Windows_NT'">win</ArchivePlatform>
@@ -15,6 +16,10 @@
     <ArchiveTimestamp>$([System.DateTime]::Now.ToString('yyMMdd-HHmmss'))</ArchiveTimestamp>
     <ArchiveFileName>$(AssemblyName)-$(ArchivePlatform)-$(ArchiveType)-$(ArchiveTimestamp).zip</ArchiveFileName>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="src\**\*.cs" />
+  </ItemGroup>
 
   <Target Name="CreatePublishArchive" AfterTargets="Publish">
     <PropertyGroup>
