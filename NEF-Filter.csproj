@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -6,6 +6,23 @@
     <RootNamespace>NEF_Filter</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <ArchiveOutputDirectory>$(MSBuildProjectDirectory)\bin\Release-Archives</ArchiveOutputDirectory>
+    <ArchivePlatform Condition="'$(RuntimeIdentifier)' != ''">$([System.String]::Copy('$(RuntimeIdentifier)').Split('-')[0])</ArchivePlatform>
+    <ArchivePlatform Condition="'$(ArchivePlatform)' == '' and '$(OS)' == 'Windows_NT'">win</ArchivePlatform>
+    <ArchivePlatform Condition="'$(ArchivePlatform)' == '' and '$(OS)' != 'Windows_NT'">linux</ArchivePlatform>
+    <ArchiveType Condition="'$(SelfContained)' == 'true'">self-contained</ArchiveType>
+    <ArchiveType Condition="'$(ArchiveType)' == ''">portable</ArchiveType>
+    <ArchiveTimestamp>$([System.DateTime]::Now.ToString('yyMMdd-HHmmss'))</ArchiveTimestamp>
+    <ArchiveFileName>$(AssemblyName)-$(ArchivePlatform)-$(ArchiveType)-$(ArchiveTimestamp).zip</ArchiveFileName>
   </PropertyGroup>
+
+  <Target Name="CreatePublishArchive" AfterTargets="Publish">
+    <PropertyGroup>
+      <ArchiveFilePath>$(ArchiveOutputDirectory)\$(ArchiveFileName)</ArchiveFilePath>
+    </PropertyGroup>
+
+    <MakeDir Directories="$(ArchiveOutputDirectory)" />
+    <Exec Command='powershell -NoProfile -ExecutionPolicy Bypass -Command "&amp; { Compress-Archive -Path &quot;$(PublishDir)*&quot; -DestinationPath &quot;$(ArchiveFilePath)&quot; -Force }"' />
+  </Target>
 
 </Project>
