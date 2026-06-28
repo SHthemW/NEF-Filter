@@ -52,9 +52,10 @@ if errorlevel 1 (
   goto :fail
 )
 
-powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-  "$content = '@echo off`r`n\"%~dp0NEF-Filter.exe\" %*`r`n';" ^
-  "[System.IO.File]::WriteAllText('%LAUNCHER_TEMP%', $content, [System.Text.Encoding]::ASCII)"
+(
+  echo @echo off
+  echo "%%~dp0NEF-Filter.exe" %%*
+) > "%LAUNCHER_TEMP%"
 if errorlevel 1 (
   set "ERROR_STAGE=launcher creation"
   set "ERROR_CODE=%ERRORLEVEL%"
