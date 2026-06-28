@@ -45,9 +45,10 @@ if errorlevel 1 (
 
 robocopy "%SOURCE_DIR%" "%INSTALL_DIR%" /E /NFL /NDL /NJH /NJS /NP >nul
 set "ROBOCOPY_EXIT=%ERRORLEVEL%"
-if %ROBOCOPY_EXIT% GEQ 8 (
+set /a "ROBOCOPY_EXIT_NUM=ROBOCOPY_EXIT"
+if %ROBOCOPY_EXIT_NUM% GEQ 8 (
   set "ERROR_STAGE=robocopy"
-  set "ERROR_CODE=%ROBOCOPY_EXIT%"
+  set "ERROR_CODE=%ROBOCOPY_EXIT_NUM%"
   set "ERROR_MESSAGE=Failed to copy program files."
   goto :fail
 )
