@@ -19,7 +19,7 @@ internal sealed class NefCleanupService
             throw new DirectoryNotFoundException($"目录不存在: {options.TargetDirectory}");
         }
 
-        var scanResult = Scan(options.TargetDirectory, cancellationToken);
+        var scanResult = Scan(options.TargetDirectory, options.Recursive, cancellationToken);
 
         if (!options.Quiet)
         {
@@ -31,12 +31,16 @@ internal sealed class NefCleanupService
         return Task.FromResult(new NefCleanupResult(deletedCount, scanResult.KeptCount));
     }
 
-    private static NefScanResult Scan(string targetDirectory, CancellationToken cancellationToken)
+    private static NefScanResult Scan(
+        string targetDirectory,
+        bool recursive,
+        CancellationToken cancellationToken)
     {
         var jpgNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var nefFiles = new List<string>();
+        var searchOption = recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
 
-        foreach (var filePath in Directory.EnumerateFiles(targetDirectory, "*", SearchOption.AllDirectories))
+        foreach (var filePath in Directory.EnumerateFiles(targetDirectory, "*", searchOption))
         {
             cancellationToken.ThrowIfCancellationRequested();
 

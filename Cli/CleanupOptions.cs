@@ -3,20 +3,22 @@ namespace NEF_Filter.Cli;
 internal sealed record CleanupOptions(
     string TargetDirectory,
     bool Quiet,
+    bool Recursive,
     bool ShowHelp);
 
 internal static class CleanupOptionsParser
 {
     public const string UsageText = """
 用法:
-  neff <目录路径> [--quiet]
+  neff <目录路径> [--quiet] [--recursive]
 
 说明:
-  递归扫描目录下的 .nef / .jpg / .jpeg 文件。
+  默认只扫描当前目录下的 .nef / .jpg / .jpeg 文件。
   保留与 JPG 同目录且同名的 NEF，删除没有对应 JPG 的 NEF。
 
 参数:
   --quiet, -q    直接删除，不显示待删除清单，也不进行二次确认
+  --recursive, -r  递归扫描所有子目录
   --help,  -h    显示帮助
 """;
 
@@ -35,6 +37,7 @@ internal static class CleanupOptionsParser
         }
 
         var quiet = false;
+        var recursive = false;
         string? directory = null;
 
         foreach (var arg in args)
@@ -43,11 +46,15 @@ internal static class CleanupOptionsParser
             {
                 case "--help":
                 case "-h":
-                    options = new CleanupOptions(string.Empty, false, true);
+                    options = new CleanupOptions(string.Empty, false, false, true);
                     return true;
                 case "--quiet":
                 case "-q":
                     quiet = true;
+                    break;
+                case "--recursive":
+                case "-r":
+                    recursive = true;
                     break;
                 default:
                     if (arg.StartsWith('-'))
@@ -74,7 +81,7 @@ internal static class CleanupOptionsParser
         }
 
         var fullPath = Path.GetFullPath(directory);
-        options = new CleanupOptions(fullPath, quiet, false);
+        options = new CleanupOptions(fullPath, quiet, recursive, false);
         return true;
     }
 }
