@@ -35,20 +35,19 @@ if exist "%PROJECT_FILE%" (
   )
 )
 
-if not exist "%INSTALL_DIR%" mkdir "%INSTALL_DIR%" >nul 2>nul
+powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+  "try {" ^
+  "  $source = '%SOURCE_DIR%';" ^
+  "  $destination = '%INSTALL_DIR%';" ^
+  "  New-Item -ItemType Directory -Force -Path $destination | Out-Null;" ^
+  "  Copy-Item -Path (Join-Path $source '*') -Destination $destination -Recurse -Force -ErrorAction Stop;" ^
+  "} catch {" ^
+  "  Write-Host ('Copy failed: ' + $_.Exception.Message);" ^
+  "  exit 1" ^
+  "}"
 if errorlevel 1 (
-  set "ERROR_STAGE=mkdir"
+  set "ERROR_STAGE=copy"
   set "ERROR_CODE=%ERRORLEVEL%"
-  set "ERROR_MESSAGE=Failed to create the installation directory."
-  goto :fail
-)
-
-robocopy "%SOURCE_DIR%" "%INSTALL_DIR%" /E /NFL /NDL /NJH /NJS /NP >nul
-set "ROBOCOPY_EXIT=%ERRORLEVEL%"
-set /a "ROBOCOPY_EXIT_NUM=ROBOCOPY_EXIT"
-if %ROBOCOPY_EXIT_NUM% GEQ 8 (
-  set "ERROR_STAGE=robocopy"
-  set "ERROR_CODE=%ROBOCOPY_EXIT_NUM%"
   set "ERROR_MESSAGE=Failed to copy program files."
   goto :fail
 )
