@@ -14,16 +14,14 @@ internal sealed class NefCleanupService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (!Directory.Exists(options.TargetDirectory))
-        {
-            throw new DirectoryNotFoundException($"目录不存在: {options.TargetDirectory}");
-        }
+        EnsureDirectoryExists(options.NefDirectory, "NEF");
+        EnsureDirectoryExists(options.JpgDirectory, "JPG");
 
-        var scanResult = Scan(options.TargetDirectory, options.Recursive, cancellationToken);
+        var scanResult = Scan(options.NefDirectory, options.JpgDirectory, options.Recursive, cancellationToken);
 
         if (!options.Quiet)
         {
-            PrintPreview(options.TargetDirectory, scanResult);
+            PrintPreview(options, scanResult);
             ConfirmDeletion(scanResult);
         }
 
@@ -32,31 +30,35 @@ internal sealed class NefCleanupService
     }
 
     private static NefScanResult Scan(
-        string targetDirectory,
+        string nefDirectory,
+        string jpgDirectory,
         bool recursive,
         CancellationToken cancellationToken)
     {
+        var searchOption = recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
         var jpgNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var nefFiles = new List<string>();
-        var searchOption = recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
 
-        foreach (var filePath in Directory.EnumerateFiles(targetDirectory, "*", searchOption))
+        foreach (var filePath in Directory.EnumerateFiles(jpgDirectory, "*", searchOption))
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var extension = Path.GetExtension(filePath);
-            if (extension.Equals(".nef", StringComparison.OrdinalIgnoreCase))
+            if (!JpgExtensions.Contains(Path.GetExtension(filePath)))
+            {
+                continue;
+            }
+
+            jpgNames.Add(BuildMatchKey(jpgDirectory, filePath));
+        }
+
+        foreach (var filePath in Directory.EnumerateFiles(nefDirectory, "*", searchOption))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (Path.GetExtension(filePath).Equals(".nef", StringComparison.OrdinalIgnoreCase))
             {
                 nefFiles.Add(filePath);
-                continue;
             }
-
-            if (!JpgExtensions.Contains(extension))
-            {
-                continue;
-            }
-
-            jpgNames.Add(BuildMatchKey(filePath));
         }
 
         var filesToDelete = new List<string>();
@@ -66,7 +68,7 @@ internal sealed class NefCleanupService
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (jpgNames.Contains(BuildMatchKey(nefFile)))
+            if (jpgNames.Contains(BuildMatchKey(nefDirectory, nefFile)))
             {
                 keptCount++;
                 continue;
@@ -92,9 +94,11 @@ internal sealed class NefCleanupService
         return deletedCount;
     }
 
-    private static void PrintPreview(string targetDirectory, NefScanResult scanResult)
+    private static void PrintPreview(CleanupOptions options, NefScanResult scanResult)
     {
-        Console.WriteLine($"扫描目录: {targetDirectory}");
+        Console.WriteLine($"NEF 目录: {options.NefDirectory}");
+        Console.WriteLine($"JPG 目录: {options.JpgDirectory}");
+        Console.WriteLine($"递归扫描: {(options.Recursive ? "是" : "否")}");
         Console.WriteLine($"待删除 NEF 文件数量: {scanResult.DeletedCount}");
         Console.WriteLine($"待保留 NEF 文件数量: {scanResult.KeptCount}");
 
@@ -106,7 +110,7 @@ internal sealed class NefCleanupService
         Console.WriteLine("待删除文件明细:");
         foreach (var filePath in scanResult.FilesToDelete.OrderBy(path => path, StringComparer.OrdinalIgnoreCase))
         {
-            var relativePath = Path.GetRelativePath(targetDirectory, filePath);
+            var relativePath = Path.GetRelativePath(options.NefDirectory, filePath);
             Console.WriteLine($"  {relativePath}");
         }
     }
@@ -128,10 +132,19 @@ internal sealed class NefCleanupService
         }
     }
 
-    private static string BuildMatchKey(string filePath)
+    private static string BuildMatchKey(string rootDirectory, string filePath)
     {
-        var directory = Path.GetDirectoryName(filePath) ?? string.Empty;
-        var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(filePath);
-        return Path.Combine(directory, fileNameWithoutExtension);
+        var relativePath = Path.GetRelativePath(rootDirectory, filePath);
+        var relativeDirectory = Path.GetDirectoryName(relativePath) ?? string.Empty;
+        var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(relativePath);
+        return Path.Combine(relativeDirectory, fileNameWithoutExtension);
+    }
+
+    private static void EnsureDirectoryExists(string directoryPath, string label)
+    {
+        if (!Directory.Exists(directoryPath))
+        {
+            throw new DirectoryNotFoundException($"{label} 目录不存在: {directoryPath}");
+        }
     }
 }
