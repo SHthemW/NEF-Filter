@@ -108,10 +108,15 @@ internal sealed class NefCleanupService
         }
 
         Console.WriteLine("Files to delete:");
-        foreach (var filePath in scanResult.FilesToDelete.OrderBy(path => path, StringComparer.OrdinalIgnoreCase))
+        var fileNames = scanResult.FilesToDelete
+            .Select(filePath => Path.GetRelativePath(options.NefDirectory, filePath))
+            .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        for (var index = 0; index < fileNames.Count; index += 5)
         {
-            var relativePath = Path.GetRelativePath(options.NefDirectory, filePath);
-            Console.WriteLine($"  {relativePath}");
+            var row = fileNames.Skip(index).Take(5);
+            Console.WriteLine($"  {string.Join(" ", row)}");
         }
     }
 
