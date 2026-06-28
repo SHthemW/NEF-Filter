@@ -74,7 +74,7 @@ neff [--nef-dir <path>] [--jpg-dir <path>] [--quiet] [--recursive]
 
 ### Installation
 
-Run the `install.ps1` script from the repository root.
+Run the `install.ps1` script from the repository root or from the published package root.
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\install.ps1

@@ -1,17 +1,27 @@
 $ErrorActionPreference = "Stop"
 
-$projectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
-$projectFile = Join-Path $projectRoot "NEF-Filter.csproj"
-$publishDirectory = Join-Path $projectRoot "dist\publish"
+$scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+$projectFile = Join-Path $scriptRoot "NEF-Filter.csproj"
+$publishDirectory = Join-Path $scriptRoot "dist\publish"
 $installDirectory = Join-Path $env:LOCALAPPDATA "neff"
 $launcherPath = Join-Path $installDirectory "neff.cmd"
 $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
+$sourceDirectory = $scriptRoot
 
-Write-Host "Publishing application..."
-dotnet publish $projectFile -c Release -o $publishDirectory | Out-Null
+if (Test-Path $projectFile) {
+    Write-Host "正在发布程序..."
+    dotnet publish $projectFile -c Release -o $publishDirectory | Out-Null
+    $sourceDirectory = $publishDirectory
+}
+elseif (-not (Test-Path (Join-Path $scriptRoot "NEF-Filter.exe"))) {
+    throw "未找到可安装的程序文件喵。请在源码仓库或发布包目录中运行此脚本。"
+}
+else {
+    Write-Host "正在从发布包安装..."
+}
 
 New-Item -ItemType Directory -Force -Path $installDirectory | Out-Null
-Copy-Item (Join-Path $publishDirectory "*") $installDirectory -Recurse -Force
+Copy-Item (Join-Path $sourceDirectory "*") $installDirectory -Recurse -Force
 
 $launcherContent = @"
 @echo off
@@ -34,13 +44,13 @@ if ($pathEntries -notcontains $installDirectory) {
     }
 
     [Environment]::SetEnvironmentVariable("Path", $updatedPath, "User")
-    Write-Host "Added $installDirectory to the current user's PATH."
+    Write-Host "已将 $installDirectory 添加到当前用户 PATH。"
 }
 else {
-    Write-Host "PATH already contains $installDirectory."
+    Write-Host "PATH 中已包含 $installDirectory。"
 }
 
 Write-Host ""
-Write-Host "Installation complete."
-Write-Host "Open a new terminal and run:"
+Write-Host "安装完成。"
+Write-Host "打开新的终端后可直接运行:"
 Write-Host "  neff <folder>"
